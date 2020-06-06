@@ -39,8 +39,6 @@ sig
   val char : char -> char parser
   val char_list : char list -> char list parser
   val string : string -> string parser
-  val nat : int parser
-  val int : int parser
   val many : 'a parser -> 'a list parser
   val many1 : 'a parser -> 'a list parser
   val sepby : 'a parser -> 'sep parser -> 'a list parser

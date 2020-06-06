@@ -73,17 +73,7 @@ struct
 
   fun many p = lift2 op:: (p, fn x => many p x) <|> return []
   fun many1 p = lift2 op:: (p, many p)
-
-  val nat : int parser = 
-    let
-      fun toNum c = Char.ord c - Char.ord #"0"
-      val eval = foldl (fn (c,i) => toNum c + 10*i) 0
-    in
-      eval <$> many1 digit
-    end
-  
-  val int = ((op~ <$ char #"-") <|> return Fn.id) <*> nat
-   
+ 
   fun sepby1 p sep = lift2 op:: (p, many $ sep *> p) 
   fun sepby p sep = sepby1 p sep <|> return []
 
