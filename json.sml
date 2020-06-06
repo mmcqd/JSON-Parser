@@ -42,7 +42,7 @@ struct
 
   val digits = String.implode <$> many1 digit
 
-  fun json i = element i
+  fun json      i = element i
 
   and value     i = multi_choice [
                       Object     <$> object,
@@ -51,7 +51,7 @@ struct
                       Number     <$> num,
                       Bool true  <$  string "true",
                       Bool false <$  string "false",
-                      Null       <$  string "null"] $ i
+                      Null       <$  string "null" ] $ i
 
   and object    i = curly (members <|> [] <$ ws) $ i
 
