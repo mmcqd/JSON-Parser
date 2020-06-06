@@ -28,7 +28,7 @@ struct
 
   fun keyval k v sep = lift2 Fn.id (k <* sep,v)
 
-  val ws = many $ sat $ mem $ List.map Char.chr [0x0020,0x000A,0x000D,0x0009]
+  val ws = many o sat o mem $ List.map Char.chr [0x0020,0x000A,0x000D,0x0009]
 
   val escape =  [#"\"",#"\\",#"/",#"\b",#"\f",#"\n",#"\r",#"\t"]
   val plain  =  [#"\"",#"\\",#"/",#"b",#"f",#"n",#"r",#"t"]
@@ -44,45 +44,43 @@ struct
 
   fun json i = element i
 
-  and value i = multi_choice [
-                Object     <$> object,
-                Array      <$> array,
-                String     <$> str,
-                Number     <$> num,
-                Bool true  <$ string "true",
-                Bool false <$ string "false",
-                Null       <$ string "null"] $ i
+  and value     i = multi_choice [
+                      Object     <$> object,
+                      Array      <$> array,
+                      String     <$> str,
+                      Number     <$> num,
+                      Bool true  <$  string "true",
+                      Bool false <$  string "false",
+                      Null       <$  string "null"] $ i
 
-  and object i = curly (members <|> [] <$ ws) $ i
+  and object    i = curly (members <|> [] <$ ws) $ i
 
-  and members i = sepby1 member (char #",") $ i
+  and members   i = sepby1 member (char #",") $ i
 
-  and member i = keyval (between ws ws str) element (char #":") $ i
+  and member    i = keyval (between ws ws str) element (char #":") $ i
 
-  and array i = square (elements <|> [] <$ ws) $ i
+  and array     i = square (elements <|> [] <$ ws) $ i
 
-  and elements i = sepby1 element (char #",") $ i
+  and elements  i = sepby1 element (char #",") $ i
 
-  and element i = between ws ws value $ i
+  and element   i = between ws ws value $ i
 
-  and str i = 
-    String.implode <$> quote (many1 $ character) $ i
+  and str       i = String.implode <$> quote (many1 $ character) $ i
 
-  and character i = 
-    sat (not o mem escape) <|> (char #"\\") *> (to_escape <$> (sat $ mem plain)) $ i
+  and character i = sat (not o mem escape) <|> (char #"\\") *> (to_escape <$> (sat $ mem plain)) $ i
 
-  and num i = valOf o Real.fromString <$> (integer <^> fraction <^> exponent) $ i
+  and num       i = valOf o Real.fromString <$> (integer <^> fraction <^> exponent) $ i
 
-  and integer i = (string "-" <|> return "") <^> digits $ i
+  and integer   i = (string "-" <|> return "") <^> digits $ i
 
-  and fraction i = string "." <^> digits <|> return "" $ i
+  and fraction  i = string "." <^> digits <|> return "" $ i
 
-  and exponent i = (string "e" <|> string "E") <^> sign <^> digits <|> return "" $ i
+  and exponent  i = (string "e" <|> string "E") <^> sign <^> digits <|> return "" $ i
 
-  and sign i = string "+" <|> string "-" <|> return "" $ i
+  and sign      i = string "+" <|> string "-" <|> return "" $ i
 
-  fun parse s = 
-    Option.map #1 $ List.find (List.null o #2) $ json % s
+
+  fun parse s = Option.map #1 o List.find (List.null o #2) $ json % s
 
   val parse_file = parse o TextIO.inputAll o TextIO.openIn
 
